@@ -1,136 +1,142 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '../../config/firebase'; 
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { ShieldCheck, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext'; // 🔥 Context zaroori hai auto-check ke liye
-import toast from 'react-hot-toast';
+import React, { useState } from 'react';
+import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { 
+  LayoutDashboard, 
+  ShoppingBag, 
+  Users, 
+  Settings, 
+  LogOut, 
+  Menu, 
+  X, 
+  Package,
+  ShieldCheck
+} from 'lucide-react';
+import { auth } from '../../config/firebase';
+import { signOut } from 'firebase/auth';
 
-const AdminLogin = () => {
+const ProtectedAdminRoute = () => {
+  const { currentUser, loading } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser } = useAuth(); // Global Auth State
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
 
-  // 🔒 TERA ADMIN EMAIL (Isko same rakhna)
+  // 🔥 TERA ADMIN EMAIL
   const ADMIN_EMAIL = "ineshvijay.work@gmail.com";
 
-  // 🔥 MAGIC 1: Auto-Redirect agar pehle se login ho
-  useEffect(() => {
-    if (currentUser && currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-      // User pehle se andar hai, form mat dikhao, seedha dashboard bhejo
-      navigate('/admin/dashboard', { replace: true });
-    }
-  }, [currentUser, navigate]);
+  // --- 1. LOGIN & SECURITY CHECK ---
 
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // Agar loading hai to Spinner dikhao
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
+        <span className="ml-4 font-bold animate-pulse">Verifying Access...</span>
+      </div>
+    );
+  }
 
-    try {
-      // 1. Firebase Login Try karo
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      const user = result.user;
-      
-      // 2. Security Check: Kya ye Admin hai?
-      if (user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-         toast.success("Welcome back, Boss! 🫡");
-         navigate('/admin/dashboard'); 
-      } else {
-         // ❌ Koi aur login karne ki koshish kar raha hai
-         setError("Access Denied: You are not authorized as Admin!");
-         await signOut(auth); // Turant logout maaro
-         toast.error("Unauthorized Access");
-      }
+  // Agar user nahi hai ya Email match nahi hua -> Login pe bhejo
+  const isAdmin = currentUser && currentUser.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+  
+  if (!isAdmin) {
+    return <Navigate to="/admin-login" replace />;
+  }
 
-    } catch (err) {
-      console.error(err);
-      if (err.code === 'auth/wrong-password') {
-        setError("Incorrect Password.");
-      } else if (err.code === 'auth/user-not-found') {
-        setError("Admin email not found.");
-      } else {
-        setError("Login Failed. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  // --- 2. ADMIN PANEL UI / LAYOUT ---
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/admin-login');
   };
 
+  const navItems = [
+    { path: '/admin/dashboard', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { path: '/admin/products', name: 'Products', icon: <Package size={20} /> }, // Route check kr lena
+    { path: '/admin/orders', name: 'Orders', icon: <ShoppingBag size={20} /> },
+    { path: '/admin/users', name: 'Customers', icon: <Users size={20} /> },
+    { path: '/admin/settings', name: 'Settings', icon: <Settings size={20} /> },
+  ];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-700">
-        
-        {/* Logo / Icon */}
-        <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-violet-600 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse">
-                <ShieldCheck size={32} />
+    <div className="flex h-screen bg-gray-100 font-sans">
+      
+      {/* SIDEBAR (Desktop & Mobile) */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transition-transform duration-300 ease-in-out transform 
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:inset-auto`}
+      >
+        {/* Logo Area */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-violet-600 rounded-lg">
+              <ShieldCheck size={24} />
             </div>
-        </div>
-
-        <h1 className="text-3xl font-bold text-center text-white mb-2 tracking-tight">Admin Portal</h1>
-        <p className="text-center text-gray-400 mb-8 text-sm">Secure Access for Inesh Only</p>
-
-        {/* Error Message */}
-        {error && (
-            <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl mb-6 text-sm flex items-center gap-2">
-                <AlertCircle size={16} />
-                {error}
-            </div>
-        )}
-
-        {/* Login Form */}
-        <form onSubmit={handleAdminLogin} className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Admin Email</label>
-            <div className="relative group">
-                <input 
-                  type="email" required 
-                  className="w-full p-3.5 pl-10 bg-gray-700/50 border border-gray-600 text-white rounded-xl outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all group-hover:bg-gray-700" 
-                  placeholder="admin@example.com" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <ShieldCheck size={18} className="absolute left-3 top-4 text-gray-500 group-focus-within:text-violet-500 transition-colors" />
+            <div>
+              <h1 className="text-lg font-bold tracking-wider">VENDIXO</h1>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest">Admin Panel</p>
             </div>
           </div>
-          
-          <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Password</label>
-            <div className="relative group">
-                <input 
-                  type="password" required 
-                  className="w-full p-3.5 pl-10 bg-gray-700/50 border border-gray-600 text-white rounded-xl outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all group-hover:bg-gray-700" 
-                  placeholder="••••••••" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <Lock size={18} className="absolute left-3 top-4 text-gray-500 group-focus-within:text-violet-500 transition-colors" />
-            </div>
-          </div>
-
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3.5 rounded-xl transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2 shadow-lg shadow-violet-900/20"
-          >
-            {loading ? "Verifying Access..." : "Access Dashboard"}
+          {/* Mobile Close Button */}
+          <button onClick={() => setSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white">
+            <X size={24} />
           </button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-gray-700 text-center">
-            <Link to="/" className="text-sm text-gray-500 hover:text-white transition-colors flex items-center justify-center gap-2">
-                ← Back to Main Website
-            </Link>
         </div>
 
+        {/* Navigation Links */}
+        <nav className="mt-6 px-4 space-y-2">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link 
+                key={item.path} 
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
+                  isActive 
+                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/50' 
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                }`}
+              >
+                {item.icon}
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Logout Button (Bottom) */}
+        <div className="absolute bottom-0 w-full p-4 border-t border-gray-800">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all font-bold"
+          >
+            <LogOut size={20} />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        {/* Top Header (Mobile Toggle & Profile) */}
+        <header className="bg-white shadow-sm border-b border-gray-200 p-4 flex justify-between items-center md:hidden">
+           <button onClick={() => setSidebarOpen(true)} className="text-gray-600">
+             <Menu size={24} />
+           </button>
+           <span className="font-bold text-gray-800">Admin Dashboard</span>
+           <div className="w-6"></div> {/* Spacer for centering */}
+        </header>
+
+        {/* Page Content (Outlet jahan Dashboard dikhega) */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50">
+           {/* Yahan tera asli Dashboard page render hoga */}
+           <Outlet /> 
+        </main>
       </div>
+
     </div>
   );
 };
 
-export default AdminLogin;
+export default ProtectedAdminRoute;
