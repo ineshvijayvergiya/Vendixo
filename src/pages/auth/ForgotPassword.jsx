@@ -1,53 +1,65 @@
 import React, { useState } from 'react';
-import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../config/firebase'; // Path ab sahi hai
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { Link } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-
-  const auth = getAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleReset = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setError('');
+    setLoading(true);
+    console.log("Attempting to send email to:", email); // Console check
 
     try {
-      // 🔥 Ye ek line tere user ko email bhej degi
       await sendPasswordResetEmail(auth, email);
-      setMessage('Check your email! Password reset link sent.');
+      
+      // ✅ Agar ye chala, matlab Firebase ne mail bhej diya
+      alert("✅ SUCCESS: Email sent! Check your inbox."); 
+      console.log("Email sent successfully");
+      
     } catch (err) {
-      setError('Error: ' + err.message);
+      console.error("Firebase Error:", err); // Asli error yahan dikhega
+      
+      // ❌ Alag-alag errors ke liye alag alerts
+      if (err.code === 'auth/user-not-found') {
+        alert("❌ ERROR: E-mail is not registered.");
+      } else if (err.code === 'auth/invalid-email') {
+        alert("❌ ERROR: Enter a valid email address.");
+      } else {
+        alert("❌ ERROR: " + err.message);
+      }
     }
+    setLoading(false);
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Reset Password</h2>
-        
-        {message && <p className="bg-green-100 text-green-700 p-2 rounded mb-4 text-sm">{message}</p>}
-        {error && <p className="bg-red-100 text-red-700 p-2 rounded mb-4 text-sm">{error}</p>}
+    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center', border: '1px solid #ddd', borderRadius: '10px' }}>
+      <h2>Reset Password 🔒</h2>
+      <p>Enter your registered email below.</p>
 
-        <form onSubmit={handleReset} className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Enter your registered email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="p-3 border rounded focus:outline-none focus:border-blue-500"
-            required
-          />
-          <button className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-bold">
-            Send Reset Link
-          </button>
-        </form>
+      <form onSubmit={handleReset}>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{ width: '90%', padding: '10px', marginBottom: '10px' }}
+        />
+        <br />
+        <button 
+          type="submit" 
+          disabled={loading}
+          style={{ padding: '10px 20px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+        >
+          {loading ? 'Sending...' : 'Send Reset Link'}
+        </button>
+      </form>
 
-        <div className="mt-4 text-center text-sm">
-          <Link to="/login" className="text-blue-500 hover:underline">Back to Login</Link>
-        </div>
+      <div style={{ marginTop: '15px' }}>
+        <Link to="/login" style={{ color: '#7c3aed' }}>Back to Login</Link>
       </div>
     </div>
   );

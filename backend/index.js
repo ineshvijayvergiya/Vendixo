@@ -15,6 +15,15 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// ✅ Check Connection
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("❌ Email Server Error:", error);
+  } else {
+    console.log("✅ Email Server Ready");
+  }
+});
+
 // 🔥 1. WELCOME EMAIL (With 10% Off Personalized)
 app.post('/send-welcome', async (req, res) => {
   const { email, name } = req.body;
@@ -139,6 +148,32 @@ app.post('/send-login-alert', async (req, res) => {
       `
     });
     res.status(200).json({ message: "Security Alert Sent!" });
+  } catch (error) {
+    res.status(500).json({ error: error.toString() });
+  }
+});
+
+// 🔥 6. PASSWORD RESET (Ye naya add kiya hai)
+app.post('/send-password-reset', async (req, res) => {
+  const { email, resetLink, name } = req.body;
+  try {
+    await transporter.sendMail({
+      from: `"Vendixo Support" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Reset Your Vendixo Password 🔒`,
+      html: `
+        <div style="font-family: sans-serif; padding: 40px; border: 1px solid #ddd; border-radius: 20px; max-width: 500px; margin: auto; text-align: center;">
+          <h2 style="color: #d9534f;">Reset Password</h2>
+          <p style="color: #666;">Hi ${name || "User"}, we received a request to reset your password.</p>
+          <p>Click the button below to set a new password:</p>
+          
+          <a href="${resetLink}" style="background: #d9534f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 12px; display: inline-block; margin: 20px 0; font-weight: bold;">Reset My Password</a>
+          
+          <p style="color: #999; font-size: 12px; margin-top: 20px;">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `
+    });
+    res.status(200).json({ message: "Reset Email Sent!" });
   } catch (error) {
     res.status(500).json({ error: error.toString() });
   }
