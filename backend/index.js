@@ -7,8 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// 👇 MAIN CHANGE YAHAN HAI (Render ke liye Secure Settings)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com",  // Gmail Host
+  port: 465,               // Secure Port (Timeout Fix)
+  secure: true,            // True for 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -20,7 +23,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.log("❌ Email Server Error:", error);
   } else {
-    console.log("✅ Email Server Ready");
+    console.log("✅ Email Server Ready (Secure Connection)");
   }
 });
 
@@ -153,7 +156,7 @@ app.post('/send-login-alert', async (req, res) => {
   }
 });
 
-// 🔥 6. PASSWORD RESET (Ye naya add kiya hai)
+// 🔥 6. PASSWORD RESET
 app.post('/send-password-reset', async (req, res) => {
   const { email, resetLink, name } = req.body;
   try {
@@ -166,9 +169,7 @@ app.post('/send-password-reset', async (req, res) => {
           <h2 style="color: #d9534f;">Reset Password</h2>
           <p style="color: #666;">Hi ${name || "User"}, we received a request to reset your password.</p>
           <p>Click the button below to set a new password:</p>
-          
           <a href="${resetLink}" style="background: #d9534f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 12px; display: inline-block; margin: 20px 0; font-weight: bold;">Reset My Password</a>
-          
           <p style="color: #999; font-size: 12px; margin-top: 20px;">If you didn't request this, you can safely ignore this email.</p>
         </div>
       `
