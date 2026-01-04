@@ -1,0 +1,111 @@
+export const products = [
+  // --- TECH PRODUCTS ---
+  {
+    id: 1,
+    title: "ProBook Studio X1",
+    price: 1299.99,
+    image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=80&w=600",
+    category: "Computers",
+    rating: 4.8,
+  },
+  {
+    id: 2,
+    title: "iPhone 14 Pro Max",
+    price: 1099.00,
+    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=600",
+    category: "Mobile",
+    rating: 4.9,
+  },
+  {
+    id: 3,
+    title: "Sony Noise Cancelling",
+    price: 299.00,
+    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=600",
+    category: "Headphones",
+    rating: 4.6,
+  },
+  {
+    id: 4,
+    title: "Gaming Beast Z7",
+    price: 1899.50,
+    image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=600",
+    category: "Computers",
+    rating: 4.9,
+  },
+  {
+    id: 5,
+    title: "Sky Phantom Drone",
+    price: 899.00,
+    image: "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?auto=format&fit=crop&q=80&w=600",
+    category: "Drones & Cameras",
+    rating: 4.7,
+  },
+  {
+    id: 6,
+    title: "iPad Air 5th Gen",
+    price: 599.00,
+    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=600",
+    category: "Tablets",
+    rating: 4.8,
+  },
+
+  // --- FASHION: MEN 👨 ---
+  {
+    id: 101,
+    title: "Oversized Beige Hoodie",
+    price: 45.00,
+    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&q=80&w=600",
+    category: "Clothing",
+    subCategory: "Men",
+    rating: 4.5,
+  },
+  {
+    id: 102,
+    title: "Classic Denim Jacket",
+    price: 89.99,
+    image: "https://images.unsplash.com/photo-1601333762689-faa114d067b5?auto=format&fit=crop&q=80&w=600",
+    category: "Clothing",
+    subCategory: "Men",
+    rating: 4.7,
+  },
+  
+  // --- FASHION: WOMEN 👩 ---
+  {
+    id: 103,
+    title: "Summer Floral Dress",
+    price: 65.00,
+    image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&q=80&w=600",
+    category: "Clothing",
+    subCategory: "Women",
+    rating: 4.8,
+  },
+  {
+    id: 104,
+    title: "High-Waist Chic Trousers",
+    price: 55.50,
+    image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&q=80&w=600",
+    category: "Clothing",
+    subCategory: "Women",
+    rating: 4.6,
+  },
+
+  // --- FASHION: KIDS 👶 ---
+  {
+    id: 105,
+    title: "Cute Cotton Romper",
+    price: 25.00,
+    image: "https://images.unsplash.com/photo-1522771930-78848d9293e8?auto=format&fit=crop&q=80&w=600",
+    category: "Clothing",
+    subCategory: "Kids",
+    rating: 4.9,
+  },
+  {
+    id: 106,
+    title: "Mini Sneakers",
+    price: 35.00,
+    image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?auto=format&fit=crop&q=80&w=600",
+    category: "Clothing",
+    subCategory: "Kids",
+    rating: 4.5,
+  },
+];
