@@ -14,46 +14,48 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 🔥 1. Email/Password Login
+  // 🔥 1. Email/Password Login (FAST VERSION)
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      // Step A: Firebase se Login confirm karo
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
 
-      // 🔐 Trigger Login Alert Email (Vendixo Security)
-      // Note: Agar email service setup nahi hai toh is line ko comment kar dena abhi ke liye
-      try {
-        await sendLoginAlertEmail(user);
-      } catch (emailErr) {
-        console.log("Email service error (ignoring for login flow):", emailErr);
-      }
-
+      // 🚀 Step B: TURANT REDIRECT (Wait mat karo)
       toast.success("Welcome back to Vendixo! 👋");
       navigate('/'); 
+
+      // 📧 Step C: Email Background mein bhejo (No 'await')
+      // Agar backend slow bhi hai, user ko farak nahi padega
+      sendLoginAlertEmail(user).catch((err) => 
+        console.log("Login email alert failed (User unaffected):", err)
+      );
+
     } catch (err) {
+      console.error(err);
       setError("Invalid Email or Password");
       toast.error("Login Failed");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Sirf error aane pe loading roko
     }
   };
 
-  // 🔥 2. Google Login
+  // 🔥 2. Google Login (FAST VERSION)
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
+      // Check karo user pehle se hai ya naya hai
       const docRef = doc(db, "users", user.uid);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
+        // Naya User hai -> Save to DB
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           displayName: user.displayName,
@@ -63,11 +65,14 @@ const Login = () => {
           createdAt: serverTimestamp(),
         });
         
-        try { await sendWelcomeEmail(user); } catch (e) { console.log(e) }
+        // Background mein Welcome Email (No await)
+        sendWelcomeEmail(user).catch(e => console.log(e));
       } else {
-        try { await sendLoginAlertEmail(user); } catch (e) { console.log(e) }
+        // Purana User hai -> Login Alert (No await)
+        sendLoginAlertEmail(user).catch(e => console.log(e));
       }
 
+      // 🚀 TURANT REDIRECT
       toast.success("Logged in with Google! 🚀");
       navigate('/');
 
@@ -102,7 +107,6 @@ const Login = () => {
             <div className="flex justify-between items-center mb-2 ml-1">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Password</label>
                 
-                {/* 👇 YAHAN ADD KIYA HAI FORGOT PASSWORD LINK 👇 */}
                 <Link to="/forgot-password" className="text-[10px] font-bold text-violet-600 hover:underline uppercase tracking-wider">
                     Forgot Password?
                 </Link>
