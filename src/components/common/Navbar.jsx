@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Heart, Search, Menu, X, Package, Settings, LogOut, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, User, Heart, Search, Menu, X, Package, Settings, LogOut, ShoppingBag, LayoutDashboard } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../config/firebase';
@@ -13,9 +13,13 @@ const Navbar = () => {
   const navigate = useNavigate();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // 🔥 Profile toggle state
+  const [isProfileOpen, setIsProfileOpen] = useState(false); 
   const [storeName, setStoreName] = useState('Vendixo'); 
   const [searchQuery, setSearchQuery] = useState('');
+
+  // 🔒 Admin Email Check
+  const ADMIN_EMAIL = "ineshvijay.work@gmail.com";
+  const isAdmin = currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
   useEffect(() => {
     const fetchStoreName = async () => {
@@ -99,18 +103,26 @@ const Navbar = () => {
                             <User size={24} />
                             <span className="hidden lg:block text-[10px] font-black uppercase tracking-tighter">Account</span>
                         </button>
-                         
+                          
                         {isProfileOpen && (
                           <>
                             {/* Overlay to close on outside click */}
                             <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)}></div>
                             
-                            <div className="absolute right-0 top-full mt-3 w-60 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-50 rounded-[2rem] p-4 z-50 animate-in fade-in zoom-in duration-200">
+                            {/* 🔥 Fix: Adjusted width for mobile (w-56) and spacing */}
+                            <div className="absolute right-0 top-full mt-3 w-56 sm:w-60 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-50 rounded-[2rem] p-4 z-50 animate-in fade-in zoom-in duration-200">
                                 <div className="px-4 py-3 mb-3 bg-violet-50 rounded-2xl">
                                     <p className="text-[9px] text-violet-400 font-black uppercase tracking-widest">Signed In As</p>
                                     <p className="text-xs font-black text-violet-700 truncate">{currentUser.displayName || 'Vendixo User'}</p>
                                 </div>
                                 
+                                {/* 👇 ADMIN LINK ADDED HERE 👇 */}
+                                {isAdmin && (
+                                  <Link to="/admin/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 mb-2 text-[11px] font-black uppercase tracking-widest text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-all shadow-lg shadow-violet-200">
+                                    <LayoutDashboard size={16}/> Admin Panel
+                                  </Link>
+                                )}
+
                                 <Link to="/profile" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 hover:text-black rounded-xl transition-all">
                                   <Settings size={16}/> Profile Settings
                                 </Link>
@@ -156,7 +168,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* 3. CATEGORY MENU */}
+      {/* 3. CATEGORY MENU (Desktop) */}
       <div className="hidden md:block bg-white/80 backdrop-blur-md border-b border-gray-100">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-10 py-3 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 overflow-x-auto no-scrollbar">
@@ -171,9 +183,9 @@ const Navbar = () => {
          </div>
       </div>
 
-      {/* MOBILE MENU */}
+      {/* MOBILE MENU (Big Drawer) */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white fixed inset-0 top-[110px] z-50 p-6 space-y-8 animate-slideIn">
+        <div className="md:hidden bg-white fixed inset-0 top-[110px] z-50 p-6 space-y-8 animate-slideIn overflow-y-auto pb-20">
           <form onSubmit={handleSearchSubmit} className="relative">
              <input 
                 type="text" 
@@ -189,7 +201,15 @@ const Navbar = () => {
               <Link to="/shop" className="block text-2xl font-black uppercase tracking-tighter" onClick={() => setIsMenuOpen(false)}>Shop All</Link>
               <Link to="/clothing" className="block text-2xl font-serif italic text-violet-600" onClick={() => setIsMenuOpen(false)}>Clothing</Link>
               <Link to="/shop?sale=true" className="block text-2xl font-black uppercase text-red-500" onClick={() => setIsMenuOpen(false)}>Outlet</Link>
+              
               <div className="border-t border-gray-100 pt-6 space-y-4">
+                  {/* 👇 ADMIN LINK IN MOBILE MENU 👇 */}
+                  {isAdmin && (
+                    <Link to="/admin/dashboard" className="flex items-center gap-2 text-sm font-black text-violet-600 uppercase tracking-widest bg-violet-50 p-3 rounded-xl" onClick={() => setIsMenuOpen(false)}>
+                      <LayoutDashboard size={18} /> Admin Dashboard
+                    </Link>
+                  )}
+
                   <Link to="/profile" className="block text-sm font-bold text-gray-500 uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>My Profile</Link>
                   <Link to="/my-orders" className="block text-sm font-bold text-gray-500 uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>Order History</Link>
                   <button onClick={handleLogout} className="block text-sm font-black text-red-500 uppercase tracking-widest">Sign Out</button>

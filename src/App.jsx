@@ -11,6 +11,7 @@ import CustomerLayout from './components/layout/CustomerLayout';
 import AdminLayout from './components/admin/AdminLayout';
 import ProtectedAdminRoute from './components/admin/ProtectedAdminRoute'; // 👈 Ye file update karni hai
 import ScrollToTop from './components/common/ScrollToTop';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
 // Customer Pages
 import Home from './pages/customer/Home';
@@ -64,6 +65,7 @@ export default function App() {
             <Route path="/help-center" element={<HelpCenter />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/my-orders" element={<MyOrders />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
           </Route>
 
           {/* --- ADMIN ROUTES --- */}

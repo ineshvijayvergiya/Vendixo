@@ -5,7 +5,6 @@ import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'; 
 import Button from '../../components/ui/Button';
 import toast from 'react-hot-toast';
-// 🔥 Email Helper Import karo
 import { sendLoginAlertEmail, sendWelcomeEmail } from '../../utils/emailService'; 
 
 const Login = () => {
@@ -26,7 +25,12 @@ const Login = () => {
       const user = result.user;
 
       // 🔐 Trigger Login Alert Email (Vendixo Security)
-      await sendLoginAlertEmail(user);
+      // Note: Agar email service setup nahi hai toh is line ko comment kar dena abhi ke liye
+      try {
+        await sendLoginAlertEmail(user);
+      } catch (emailErr) {
+        console.log("Email service error (ignoring for login flow):", emailErr);
+      }
 
       toast.success("Welcome back to Vendixo! 👋");
       navigate('/'); 
@@ -39,7 +43,7 @@ const Login = () => {
     }
   };
 
-  // 🔥 2. Google Login + Database Save Logic
+  // 🔥 2. Google Login
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
@@ -50,7 +54,6 @@ const Login = () => {
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
-        // 🆕 Agar Ekdam Naya User hai, to Welcome Email bhi bhej do
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
           displayName: user.displayName,
@@ -60,10 +63,9 @@ const Login = () => {
           createdAt: serverTimestamp(),
         });
         
-        await sendWelcomeEmail(user); // Naye user ke liye Welcome mail
+        try { await sendWelcomeEmail(user); } catch (e) { console.log(e) }
       } else {
-        // Purane user ke liye sirf Login Alert
-        await sendLoginAlertEmail(user);
+        try { await sendLoginAlertEmail(user); } catch (e) { console.log(e) }
       }
 
       toast.success("Logged in with Google! 🚀");
@@ -95,8 +97,17 @@ const Login = () => {
               value={email} onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+          
           <div>
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Password</label>
+            <div className="flex justify-between items-center mb-2 ml-1">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Password</label>
+                
+                {/* 👇 YAHAN ADD KIYA HAI FORGOT PASSWORD LINK 👇 */}
+                <Link to="/forgot-password" className="text-[10px] font-bold text-violet-600 hover:underline uppercase tracking-wider">
+                    Forgot Password?
+                </Link>
+            </div>
+            
             <input 
               type="password" required 
               className="w-full p-4 bg-gray-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-violet-500 font-medium transition-all" 
